@@ -1,15 +1,19 @@
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO, emit
 
-app = Flask(__name__, static_folder='..', static_url_path='')
+app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 viewers = 0
 
+@app.route('/Assets/<path:path>')
+def send_asset(path):
+    return send_from_directory('../Assets', path)
+
 @app.route('/')
 def index():
-    return send_from_directory('index.html')
+    return send_from_directory('..', 'index.html')
 
 @socketio.on('connect')
 def handle_connect():
@@ -24,4 +28,4 @@ def handle_disconnect():
     emit('viewer_count', viewers, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, port=8000)
