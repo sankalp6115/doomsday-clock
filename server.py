@@ -9,7 +9,7 @@ viewers = 0
 
 @app.route('/')
 def index():
-    return send_from_directory('..', 'index.html')
+    return send_from_directory('index.html')
 
 @socketio.on('connect')
 def handle_connect():
