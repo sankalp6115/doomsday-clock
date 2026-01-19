@@ -9,11 +9,11 @@ viewers = 0
 
 @app.route('/Assets/<path:path>')
 def send_asset(path):
-    return send_from_directory('../Assets', path)
+    return send_from_directory('Assets', path)
 
 @app.route('/')
 def index():
-    return send_from_directory('..', 'index.html')
+    return send_from_directory('.', 'index.html')
 
 @socketio.on('connect')
 def handle_connect():
