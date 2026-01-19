@@ -249,8 +249,11 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js"></script>
+     
     <script>
-        const socket = io();
+        const socket = io("http://localhost:8000", {
+            transports: ["websocket"]
+        });
         const viewerCountElement = document.getElementById('viewer-count');
 
         socket.on('viewer_count', (count) => {
