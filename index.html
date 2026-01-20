@@ -1,385 +1,507 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Doomsday Clock</title>
-    <link rel="shortcut icon" href="https://preview.redd.it/vxjoya9vcd841.jpg?width=1080&crop=smart&auto=webp&s=69dce7784729f27ae4ea2c7766476dd7adcd8907" type="image/x-icon">
+    <link
+      rel="shortcut icon"
+      href="https://preview.redd.it/vxjoya9vcd841.jpg?width=1080&crop=smart&auto=webp&s=69dce7784729f27ae4ea2c7766476dd7adcd8907"
+      type="image/x-icon"
+    />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Oswald:wght@700&display=swap');
+      @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Oswald:wght@700&display=swap");
 
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-color: #050505;
+        background-image: url(Assets/doomsday.jpeg);
+        background-size: 150%;
+        background-position: center;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-family: "Montserrat", sans-serif;
+        overflow: hidden;
+        user-select: none;
+      }
+
+      .container {
+        text-align: center;
+        position: absolute;
+        line-height: 0.5em;
+        top: 60%;
+        z-index: 2;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+        font-weight: 100;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        margin-bottom: 3rem;
+        color: #e0e0e0;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      }
+
+      .countdown {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        transform: translateY(-40%);
+      }
+
+      .time-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .digits-wrapper {
+        display: flex;
+      }
+
+      .digit-window {
+        height: 5rem;
+        width: 3rem;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .digit-strip {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform: translateY(0);
+        will-change: transform;
+      }
+
+      .slide-up {
+        transition: transform 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+        transform: translateY(-50%);
+      }
+
+      .number {
+        font-family: "Montserrat", sans-serif;
+        font-size: 4rem;
+        line-height: 1;
+        font-weight: 100;
+        height: 6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+
+      .separator {
+        font-family: "Oswald", sans-serif;
+        font-size: 2rem;
+        font-weight: 100;
+        color: white;
+        margin-top: 2.5rem;
+      }
+
+      .label {
+        font-size: 0.6rem;
+        letter-spacing: 0.1em;
+        color: #a0a0a0;
+        margin-top: 0.5rem;
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+
+      .sound-control {
+        margin-top: 3rem;
+      }
+      button {
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid #555;
+        color: #888;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-family: "Montserrat", sans-serif;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        transition: 0.2s;
+      }
+      button:hover {
+        border-color: #fff;
+        color: #fff;
+      }
+
+      @media (max-width: 900px) {
         body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            background-color: #050505;
-            background-image: url(Assets/doomsday.jpeg);
-            background-size: 150%;
-            background-position: center;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden;
-            user-select: none;
+          background-size: cover;
         }
-
-        .container {
-            text-align: center;
-            position: absolute;
-            line-height: 0.5em;
-            top: 60%;
-            z-index: 2;
-        }
-
         h1 {
-            font-size: 1.7rem;
-            font-weight: 100;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            margin-bottom: 3rem;
-            color: #e0e0e0;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+          font-size: 1rem;
         }
-
-        .countdown {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            transform: translateY(-40%);
-        }
-
-        .time-block {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .digits-wrapper {
-            display: flex;
-        }
-        
+        .number,
         .digit-window {
-            height: 5rem;
-            width: 3rem;
-            overflow: hidden;
-            position: relative;
+          height: 3rem;
+          font-size: 2rem;
+          width: 1.8rem;
         }
-
-        .digit-strip {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transform: translateY(0);
-            will-change: transform;
-        }
-
-        .slide-up {
-            transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
-            transform: translateY(-50%);
-        }
-
-        .number {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 4rem;
-            line-height: 1;
-            font-weight: 100;
-            height: 6rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-
         .separator {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2rem;
-            font-weight: 100;
-            color: white;
-            margin-top: 2.5rem;
+          font-size: 1rem;
+          margin-top: 5%;
         }
-
+        .countdown {
+          gap: 0.2rem;
+        }
         .label {
-            font-size: 0.6rem;
-            letter-spacing: 0.1em;
-            color: #a0a0a0;
-            margin-top: 0.5rem;
-            text-transform: uppercase;
-            font-weight: 500;
+          font-size: 0.5rem;
         }
-
-        .sound-control {
-            margin-top: 3rem;
+        #viewer-count-container {
+          text-align: center;
         }
-        button {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid #555;
-            color: #888;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-family: 'Montserrat', sans-serif;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            transition: 0.2s;
+      }
+      #viewer-count-container {
+        position: fixed;
+        bottom: 20px;
+        right: 40px;
+        background-color: rgb(255,255,255,0.4);
+        border-radius: 10px;
+        padding: 10px;
+        color: greenyellow;
+      }
+      .live-dot {
+        display: inline;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+        position: absolute;
+        right: -20px;
+        animation: dot 1s infinite ease;
+      }
+      @keyframes dot {
+        0% {
+          opacity: 1;
         }
-        button:hover {
-            border-color: #fff;
-            color: #fff;
+        50% {
+          opacity: 0.3;
         }
-
-        @media (max-width: 900px) {
-            body{background-size: cover;}
-            h1 { font-size: 1rem; }
-            .number, .digit-window { height: 3rem; font-size: 2rem; width: 1.8rem; }
-            .separator { font-size: 1rem; margin-top: 5%; }
-            .countdown { gap: 0.2rem; }
-            .label { font-size: 0.5rem; }
+        100% {
+          opacity: 1;
         }
-        #viewer-count-container{
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-
-        }
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="container">
-        <h1>Doomsday Is Coming</h1>
+      <h1>Doomsday Is Coming</h1>
 
-        <div class="countdown">
-            
-            <div class="time-block">
-                <div class="digits-wrapper">
-                    <div class="digit-window">
-                        <div class="digit-strip" id="mo-1">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                    <div class="digit-window">
-                        <div class="digit-strip" id="mo-2">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                </div>
-                <span class="label">Months</span>
+      <div class="countdown">
+        <div class="time-block">
+          <div class="digits-wrapper">
+            <div class="digit-window">
+              <div class="digit-strip" id="mo-1">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
             </div>
-
-            <div class="separator">:</div>
-
-            <div class="time-block">
-                <div class="digits-wrapper">
-                    <div class="digit-window">
-                        <div class="digit-strip" id="d-1">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                    <div class="digit-window">
-                        <div class="digit-strip" id="d-2">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                </div>
-                <span class="label">Days</span>
+            <div class="digit-window">
+              <div class="digit-strip" id="mo-2">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
             </div>
-
-            <div class="separator">:</div>
-
-            <div class="time-block">
-                <div class="digits-wrapper">
-                    <div class="digit-window">
-                        <div class="digit-strip" id="h-1">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                    <div class="digit-window">
-                        <div class="digit-strip" id="h-2">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                </div>
-                <span class="label">Hours</span>
-            </div>
-
-            <div class="separator">:</div>
-
-            <div class="time-block">
-                <div class="digits-wrapper">
-                    <div class="digit-window">
-                        <div class="digit-strip" id="m-1">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                    <div class="digit-window">
-                        <div class="digit-strip" id="m-2">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                </div>
-                <span class="label">Minutes</span>
-            </div>
-
-            <div class="separator">:</div>
-
-            <div class="time-block">
-                <div class="digits-wrapper">
-                    <div class="digit-window">
-                        <div class="digit-strip" id="s-1">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                    <div class="digit-window">
-                        <div class="digit-strip" id="s-2">
-                            <span class="number">0</span><span class="number">0</span>
-                        </div>
-                    </div>
-                </div>
-                <span class="label">Seconds</span>
-            </div>
+          </div>
+          <span class="label">Months</span>
         </div>
 
-        <div id="viewer-count-container">
-            <span id="viewer-count">0</span> viewers watching
+        <div class="separator">:</div>
+
+        <div class="time-block">
+          <div class="digits-wrapper">
+            <div class="digit-window">
+              <div class="digit-strip" id="d-1">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+            <div class="digit-window">
+              <div class="digit-strip" id="d-2">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+          </div>
+          <span class="label">Days</span>
         </div>
+
+        <div class="separator">:</div>
+
+        <div class="time-block">
+          <div class="digits-wrapper">
+            <div class="digit-window">
+              <div class="digit-strip" id="h-1">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+            <div class="digit-window">
+              <div class="digit-strip" id="h-2">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+          </div>
+          <span class="label">Hours</span>
+        </div>
+
+        <div class="separator">:</div>
+
+        <div class="time-block">
+          <div class="digits-wrapper">
+            <div class="digit-window">
+              <div class="digit-strip" id="m-1">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+            <div class="digit-window">
+              <div class="digit-strip" id="m-2">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+          </div>
+          <span class="label">Minutes</span>
+        </div>
+
+        <div class="separator">:</div>
+
+        <div class="time-block">
+          <div class="digits-wrapper">
+            <div class="digit-window">
+              <div class="digit-strip" id="s-1">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+            <div class="digit-window">
+              <div class="digit-strip" id="s-2">
+                <span class="number">0</span><span class="number">0</span>
+              </div>
+            </div>
+          </div>
+          <span class="label">Seconds</span>
+        </div>
+      </div>
+
+      <div id="viewer-count-container">
+        <span id="viewer-count">1</span> viewers watching live
+        <div class="live-dot"></div>
+      </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js"></script>
-     
     <script>
-        const socket = io("http://localhost:8000", {
-            transports: ["websocket"]
-        });
-        const viewerCountElement = document.getElementById('viewer-count');
+      const viewerCountElement = document.getElementById("viewer-count");
+      // Target Date: December 18, 2026
+      const targetDate = new Date("December 18, 2026 10:30:20");
+      let state = {};
 
-        socket.on('viewer_count', (count) => {
-            viewerCountElement.innerText = count;
-        });
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      let tickBuffer = null;
 
-        // Target Date: December 18, 2026
-        const targetDate = new Date('December 18, 2026 00:00:00');
+      async function loadTickSound() {
+        const res = await fetch("Assets/doomsday.mp3"); // your 1s tick
+        const arrayBuffer = await res.arrayBuffer();
+        tickBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      }
+      loadTickSound();
 
-        // State tracking for every single digit (Tens and Ones)
-        // Format: { 'id': 'currentValue' }
-        let state = {};
+      let isTicking = false;
+      let nextTickTime = 0;
+      const TICK_INTERVAL = 2.0;
+      const SCHEDULE_AHEAD_TIME = 0.1;
 
-        // Sound Logic
-        const soundBtn = document.getElementById('toggle-sound');
-        let soundEnabled = false;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function playTickAt(time) {
+        const source = audioCtx.createBufferSource();
+        source.buffer = tickBuffer;
+        source.connect(audioCtx.destination);
+        source.start(time);
+      }
 
-        const sound = new Audio();
-        sound.loop = true;
-        sound.src="Assets/doomsday.mp3";
-        function playTick() {
-            if (sound.paused) {
-                sound.play();
-            }
+      function scheduler() {
+        if (!isTicking || !tickBuffer) return;
+
+        while (nextTickTime < audioCtx.currentTime + SCHEDULE_AHEAD_TIME) {
+          playTickAt(nextTickTime);
+          nextTickTime += TICK_INTERVAL;
         }
 
-        // The Core Animation Function for a Single Digit
-        function updateDigitStrip(id, newVal) {
-            // Initialize state if empty
-            if (state[id] === undefined) {
-                state[id] = newVal;
-                // Set initial text
-                const strip = document.getElementById(id);
-                strip.children[0].innerText = newVal;
-                strip.children[1].innerText = newVal;
-                return;
-            }
+        requestAnimationFrame(scheduler);
+      }
 
-            // If value hasn't changed, do nothing (This keeps the '2' static in '23')
-            if (state[id] === newVal) return;
+      function startTicking() {
+        if (!tickBuffer) return;
 
-            const strip = document.getElementById(id);
-            const topNum = strip.children[0];
-            const botNum = strip.children[1];
-
-            // 1. Prepare the bottom number with the NEW value
-            botNum.innerText = newVal;
-
-            // 2. Animate the strip Upwards
-            strip.classList.add('slide-up');
-
-            // 3. Cleanup after animation
-            setTimeout(() => {
-                // Instantly move the new value to the top position
-                topNum.innerText = newVal;
-                // Remove the animation class (snaps strip back to start position instantly)
-                strip.classList.remove('slide-up');
-                // Update state
-                state[id] = newVal;
-            }, 500); // 500ms matches CSS transition
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
         }
 
-        function updateCountdown() {
-            const now = new Date();
-            let diff = targetDate - now;
+        isTicking = true;
+        nextTickTime = audioCtx.currentTime + 0.1;
+        scheduler();
+      }
 
-            if (diff <= 0) {
-                // Doomsday reached
-                return;
-            }
+      // The Core Animation Function for a Single Digit
+      function updateDigitStrip(id, newVal) {
+        // Initialize state if empty
+        if (state[id] === undefined) {
+          state[id] = newVal;
+          // Set initial text
+          const strip = document.getElementById(id);
+          strip.children[0].innerText = newVal;
+          strip.children[1].innerText = newVal;
+          return;
+        }
+        if (state[id] === newVal) return;
 
-            let years = targetDate.getFullYear() - now.getFullYear();
-            let months = targetDate.getMonth() - now.getMonth();
-            let days = targetDate.getDate() - now.getDate();
+        const strip = document.getElementById(id);
+        const topNum = strip.children[0];
+        const botNum = strip.children[1];
+        botNum.innerText = newVal;
+        strip.classList.add("slide-up");
+        setTimeout(() => {
+          topNum.innerText = newVal;
+          strip.classList.remove("slide-up");
+          state[id] = newVal;
+        }, 500);
+      }
 
-            if (days < 0) {
-                months--;
-                let prevMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
-                days += prevMonth.getDate();
-            }
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-            const totalMonths = (years * 12) + months;
+      function updateCountdown() {
+        const now = new Date();
+        let diff = targetDate - now;
 
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            const sM = String(totalMonths).padStart(2, '0');
-            const sD = String(days).padStart(2, '0');
-            const sH = String(hours).padStart(2, '0');
-            const sMin = String(minutes).padStart(2, '0');
-            const sSec = String(seconds).padStart(2, '0');
-            
-            // Months
-            updateDigitStrip('mo-1', sM[0]);
-            updateDigitStrip('mo-2', sM[1]);
-
-            // Days
-            updateDigitStrip('d-1', sD[0]);
-            updateDigitStrip('d-2', sD[1]);
-
-            // Hours
-            updateDigitStrip('h-1', sH[0]);
-            updateDigitStrip('h-2', sH[1]);
-
-            // Minutes
-            updateDigitStrip('m-1', sMin[0]);
-            updateDigitStrip('m-2', sMin[1]);
-
-            // Seconds
-            updateDigitStrip('s-1', sSec[0]);
-            updateDigitStrip('s-2', sSec[1]);
-
-            // playTick();
+        if (diff <= 0) {
+          // Doomsday reached
+          return;
         }
 
-        document.addEventListener("click", () => {
-            playTick();
-        }, { once: true });
+        let years = targetDate.getFullYear() - now.getFullYear();
+        let months = targetDate.getMonth() - now.getMonth();
+        let days = targetDate.getDate() - now.getDate();
 
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        if (days < 0) {
+          months--;
+          let prevMonth = new Date(
+            targetDate.getFullYear(),
+            targetDate.getMonth(),
+            0,
+          );
+          days += prevMonth.getDate();
+        }
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+        const totalMonths = years * 12 + months;
 
+        const hours = Math.floor(
+          (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+        );
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        const sM = String(totalMonths).padStart(2, "0");
+        const sD = String(days).padStart(2, "0");
+        const sH = String(hours).padStart(2, "0");
+        const sMin = String(minutes).padStart(2, "0");
+        const sSec = String(seconds).padStart(2, "0");
+
+        // Months
+        updateDigitStrip("mo-1", sM[0]);
+        updateDigitStrip("mo-2", sM[1]);
+
+        // Days
+        updateDigitStrip("d-1", sD[0]);
+        updateDigitStrip("d-2", sD[1]);
+
+        // Hours
+        updateDigitStrip("h-1", sH[0]);
+        updateDigitStrip("h-2", sH[1]);
+
+        // Minutes
+        updateDigitStrip("m-1", sMin[0]);
+        updateDigitStrip("m-2", sMin[1]);
+
+        // Seconds
+        updateDigitStrip("s-1", sSec[0]);
+        updateDigitStrip("s-2", sSec[1]);
+
+        // playTick();
+      }
+
+      document.addEventListener(
+        "click",
+        () => {
+          startTicking();
+        },
+        { once: true },
+      );
+
+      setInterval(updateCountdown, 1000);
+      updateCountdown();
+
+      // Viewer count system
+      const cryptoObj = window.crypto;
+
+      function generateUUID() {
+        if (cryptoObj.randomUUID) {
+          return cryptoObj.randomUUID();
+        }
+
+        // Fallback: RFC4122-ish UUID v4
+        const bytes = new Uint8Array(16);
+        cryptoObj.getRandomValues(bytes);
+
+        bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+        bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
+
+        const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0"));
+
+        return (
+          hex.slice(0, 4).join("") +
+          "-" +
+          hex.slice(4, 6).join("") +
+          "-" +
+          hex.slice(6, 8).join("") +
+          "-" +
+          hex.slice(8, 10).join("") +
+          "-" +
+          hex.slice(10, 16).join("")
+        );
+      }
+
+      let clientId = localStorage.getItem("client_id");
+      if (!clientId) {
+        clientId = generateUUID();
+        localStorage.setItem("client_id", clientId);
+      }
+
+      async function heartbeat() {
+        try {
+          await fetch("/api/heartbeat?cid=" + clientId);
+        } catch (e) {
+          console.error("heartbeat failed", e);
+        }
+      }
+
+      async function fetchViewers() {
+        try {
+          const res = await fetch("/api/viewers");
+          const data = await res.json();
+          viewerCountElement.textContent = data.viewers;
+        } catch (e) {
+          console.error("viewer fetch failed", e);
+        }
+      }
+
+      heartbeat();
+      fetchViewers();
+
+      setInterval(heartbeat, 2000);
+      setInterval(fetchViewers, 3000);
     </script>
-</body>
+  </body>
 </html>
