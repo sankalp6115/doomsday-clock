@@ -2,10 +2,7 @@
 <html lang="en">
   <head>
     <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-8CHZV8W1T3"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8CHZV8W1T3"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -316,63 +313,68 @@
       const targetDate = new Date("December 18, 2026 10:30:20");
       let state = {};
 
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      let tickBuffers = [null, null]; // [0] = loud, [1] = soft
-      let tickingStarted = false;
-      let schedulerTimer = null;
+let audioCtx = null;
+let tickBuffers = [null, null];
+let tickingStarted = false;
+let schedulerTimer = null;
 
-      async function loadBuffer(url) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status + " — " + url);
-        const arrayBuffer = await res.arrayBuffer();
-        return await audioCtx.decodeAudioData(arrayBuffer);
-      }
+async function loadBuffer(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status + " — " + url);
+  const arrayBuffer = await res.arrayBuffer();
+  return await audioCtx.decodeAudioData(arrayBuffer);
+}
 
-      async function loadTickSounds() {
-        try {
-          const [loud, soft] = await Promise.all([
-            loadBuffer("Assets/loud.mp3"),
-            loadBuffer("Assets/soft.mp3"),
-          ]);
-          tickBuffers[0] = loud;
-          tickBuffers[1] = soft;
-          console.log("Both ticks loaded ✓");
-        } catch (e) {
-          console.error("Tick load failed:", e);
-        }
-      }
-      loadTickSounds();
+async function loadTickSounds() {
+  try {
+    const [loud, soft] = await Promise.all([
+      loadBuffer("/Assets/loud.mp3"),
+      loadBuffer("/Assets/soft.mp3"),
+    ]);
+    tickBuffers[0] = loud;
+    tickBuffers[1] = soft;
+    console.log("Both ticks loaded ✓");
+  } catch (e) {
+    console.error("Tick load failed:", e);
+  }
+}
 
-      function tick() {
-        if (!tickingStarted) return;
+function tick() {
+  if (!tickingStarted) return;
 
-        // Keep chain alive while buffers are still loading
-        if (!tickBuffers[0] || !tickBuffers[1]) {
-          schedulerTimer = setTimeout(tick, 100);
-          return;
-        }
+  if (!tickBuffers[0] || !tickBuffers[1]) {
+    schedulerTimer = setTimeout(tick, 100);
+    return;
+  }
+ console.log("tick firing, bufferIndex:", Math.floor(Date.now() / 1000) % 2); // ← add this
+  const nowMs = Date.now();
+  const msUntilNextSecond = 1000 - (nowMs % 1000);
+  const playAt = audioCtx.currentTime + msUntilNextSecond / 1000;
 
-        const nowMs = Date.now();
-        const msUntilNextSecond = 1000 - (nowMs % 1000);
-        const playAt = audioCtx.currentTime + msUntilNextSecond / 1000;
+  const bufferIndex = Math.floor(Date.now() / 1000) % 2;
 
-        // Even second = loud, odd second = soft — same on every device
-        const bufferIndex = Math.floor(Date.now() / 1000) % 2;
+  const source = audioCtx.createBufferSource();
+  source.buffer = tickBuffers[bufferIndex];
+  source.connect(audioCtx.destination);
+  source.start(playAt);
 
-        const source = audioCtx.createBufferSource();
-        source.buffer = tickBuffers[bufferIndex];
-        source.connect(audioCtx.destination);
-        source.start(playAt);
+  schedulerTimer = setTimeout(tick, msUntilNextSecond + 20);
+}
 
-        schedulerTimer = setTimeout(tick, msUntilNextSecond + 20);
-      }
+function startTicking() {
+  if (tickingStarted) return;
 
-      function startTicking() {
-        if (tickingStarted) return;
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        tickingStarted = true;
-        tick();
-      }
+  // ✅ Create AudioContext HERE — inside user gesture — browser is happy
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  audioCtx.resume();
+  // ✅ Load sounds NOW that audioCtx exists, then start ticking
+  loadTickSounds().then(() => {
+    tickingStarted = true;
+    tick();
+  });
+}
+
+document.addEventListener("click", startTicking, { once: true });
 
       // ─── COUNTDOWN ───────────────────────────────────────────────────────────
       // FIX: setTimeout in updateDigitStrip now matches the CSS transition (300ms).
@@ -453,15 +455,6 @@
         updateDigitStrip("s-1", sSec[0]);
         updateDigitStrip("s-2", sSec[1]);
       }
-
-      // Unlock audio on first user interaction (browser policy requirement)
-      document.addEventListener(
-        "click",
-        () => {
-          startTicking();
-        },
-        { once: true },
-      );
 
       // Align the countdown interval to real clock seconds to avoid drift
       function startAlignedInterval() {
