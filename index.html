@@ -80,8 +80,9 @@
         will-change: transform;
       }
 
+      /* FIX: transition duration matches the setTimeout (300ms) */
       .slide-up {
-        transition: transform 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+        transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1);
         transform: translateY(-50%);
       }
 
@@ -166,7 +167,7 @@
         position: fixed;
         bottom: 20px;
         right: 40px;
-        background-color: rgb(255,255,255,0.4);
+        background-color: rgb(255, 255, 255, 0.4);
         border-radius: 10px;
         padding: 10px;
         color: greenyellow;
@@ -296,61 +297,74 @@
 
     <script>
       const viewerCountElement = document.getElementById("viewer-count");
+
       // Target Date: December 18, 2026
       const targetDate = new Date("December 18, 2026 10:30:20");
       let state = {};
 
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      let tickBuffer = null;
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let tickBuffers = [null, null]; // [0] = loud, [1] = soft
+let tickingStarted = false;
+let schedulerTimer = null;
 
-      async function loadTickSound() {
-        const res = await fetch("Assets/doomsday.mp3"); // your 1s tick
-        const arrayBuffer = await res.arrayBuffer();
-        tickBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-      }
-      loadTickSound();
+async function loadBuffer(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status + " — " + url);
+  const arrayBuffer = await res.arrayBuffer();
+  return await audioCtx.decodeAudioData(arrayBuffer);
+}
 
-      let isTicking = false;
-      let nextTickTime = 0;
-      const TICK_INTERVAL = 2.0;
-      const SCHEDULE_AHEAD_TIME = 0.1;
+async function loadTickSounds() {
+  try {
+    const [loud, soft] = await Promise.all([
+      loadBuffer("Assets/loud.mp3"),
+      loadBuffer("Assets/soft.mp3"),
+    ]);
+    tickBuffers[0] = loud;
+    tickBuffers[1] = soft;
+    console.log("Both ticks loaded ✓");
+  } catch (e) {
+    console.error("Tick load failed:", e);
+  }
+}
+loadTickSounds();
 
-      function playTickAt(time) {
-        const source = audioCtx.createBufferSource();
-        source.buffer = tickBuffer;
-        source.connect(audioCtx.destination);
-        source.start(time);
-      }
+function tick() {
+  if (!tickingStarted) return;
 
-      function scheduler() {
-        if (!isTicking || !tickBuffer) return;
+  // Keep chain alive while buffers are still loading
+  if (!tickBuffers[0] || !tickBuffers[1]) {
+    schedulerTimer = setTimeout(tick, 100);
+    return;
+  }
 
-        while (nextTickTime < audioCtx.currentTime + SCHEDULE_AHEAD_TIME) {
-          playTickAt(nextTickTime);
-          nextTickTime += TICK_INTERVAL;
-        }
+  const nowMs = Date.now();
+  const msUntilNextSecond = 1000 - (nowMs % 1000);
+  const playAt = audioCtx.currentTime + msUntilNextSecond / 1000;
 
-        requestAnimationFrame(scheduler);
-      }
+  // Even second = loud, odd second = soft — same on every device
+  const bufferIndex = Math.floor(Date.now() / 1000) % 2;
 
-      function startTicking() {
-        if (!tickBuffer) return;
+  const source = audioCtx.createBufferSource();
+  source.buffer = tickBuffers[bufferIndex];
+  source.connect(audioCtx.destination);
+  source.start(playAt);
 
-        if (audioCtx.state === "suspended") {
-          audioCtx.resume();
-        }
+  schedulerTimer = setTimeout(tick, msUntilNextSecond + 20);
+}
 
-        isTicking = true;
-        nextTickTime = audioCtx.currentTime + 0.1;
-        scheduler();
-      }
+function startTicking() {
+  if (tickingStarted) return;
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  tickingStarted = true;
+  tick();
+}
 
-      // The Core Animation Function for a Single Digit
+      // ─── COUNTDOWN ───────────────────────────────────────────────────────────
+      // FIX: setTimeout in updateDigitStrip now matches the CSS transition (300ms).
       function updateDigitStrip(id, newVal) {
-        // Initialize state if empty
         if (state[id] === undefined) {
           state[id] = newVal;
-          // Set initial text
           const strip = document.getElementById(id);
           strip.children[0].innerText = newVal;
           strip.children[1].innerText = newVal;
@@ -363,29 +377,32 @@
         const botNum = strip.children[1];
         botNum.innerText = newVal;
         strip.classList.add("slide-up");
+        // FIX: was 500ms — now aligned to the 300ms CSS transition
         setTimeout(() => {
           topNum.innerText = newVal;
           strip.classList.remove("slide-up");
           state[id] = newVal;
-        }, 500);
+        }, 300);
       }
 
       function updateCountdown() {
         const now = new Date();
-        let diff = targetDate - now;
+        const diff = targetDate - now;
 
         if (diff <= 0) {
-          // Doomsday reached
+          // Doomsday reached — you could trigger a special animation here
           return;
         }
 
+        // Calendar-based months/days (accurate regardless of month lengths)
         let years = targetDate.getFullYear() - now.getFullYear();
         let months = targetDate.getMonth() - now.getMonth();
         let days = targetDate.getDate() - now.getDate();
 
         if (days < 0) {
           months--;
-          let prevMonth = new Date(
+          // Days in the month *before* the target month
+          const prevMonth = new Date(
             targetDate.getFullYear(),
             targetDate.getMonth(),
             0,
@@ -398,40 +415,32 @@
         }
         const totalMonths = years * 12 + months;
 
+        // ms-based hours/minutes/seconds (correct — uses remainder within a day)
         const hours = Math.floor(
           (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
         );
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
         const sM = String(totalMonths).padStart(2, "0");
         const sD = String(days).padStart(2, "0");
         const sH = String(hours).padStart(2, "0");
         const sMin = String(minutes).padStart(2, "0");
         const sSec = String(seconds).padStart(2, "0");
 
-        // Months
         updateDigitStrip("mo-1", sM[0]);
         updateDigitStrip("mo-2", sM[1]);
-
-        // Days
         updateDigitStrip("d-1", sD[0]);
         updateDigitStrip("d-2", sD[1]);
-
-        // Hours
         updateDigitStrip("h-1", sH[0]);
         updateDigitStrip("h-2", sH[1]);
-
-        // Minutes
         updateDigitStrip("m-1", sMin[0]);
         updateDigitStrip("m-2", sMin[1]);
-
-        // Seconds
         updateDigitStrip("s-1", sSec[0]);
         updateDigitStrip("s-2", sSec[1]);
-
-        // playTick();
       }
 
+      // Unlock audio on first user interaction (browser policy requirement)
       document.addEventListener(
         "click",
         () => {
@@ -440,26 +449,28 @@
         { once: true },
       );
 
-      setInterval(updateCountdown, 1000);
-      updateCountdown();
+      // Align the countdown interval to real clock seconds to avoid drift
+      function startAlignedInterval() {
+        const msUntilNextSecond = 1000 - (Date.now() % 1000);
+        setTimeout(() => {
+          updateCountdown();
+          setInterval(updateCountdown, 1000);
+        }, msUntilNextSecond);
+      }
 
-      // Viewer count system
+      updateCountdown();
+      startAlignedInterval();
+
+      // ─── VIEWER COUNT ────────────────────────────────────────────────────────
       const cryptoObj = window.crypto;
 
       function generateUUID() {
-        if (cryptoObj.randomUUID) {
-          return cryptoObj.randomUUID();
-        }
-
-        // Fallback: RFC4122-ish UUID v4
+        if (cryptoObj.randomUUID) return cryptoObj.randomUUID();
         const bytes = new Uint8Array(16);
         cryptoObj.getRandomValues(bytes);
-
-        bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-        bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
-
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
         const hex = [...bytes].map((b) => b.toString(16).padStart(2, "0"));
-
         return (
           hex.slice(0, 4).join("") +
           "-" +
@@ -497,11 +508,10 @@
         }
       }
 
-      heartbeat();
-      fetchViewers();
-
-      setInterval(heartbeat, 2000);
-      setInterval(fetchViewers, 3000);
+      // heartbeat();
+      // fetchViewers();
+      // setInterval(heartbeat, 2000);
+      // setInterval(fetchViewers, 3000);
     </script>
   </body>
 </html>
